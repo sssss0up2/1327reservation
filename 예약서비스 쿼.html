@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>쿼부장의 새롬관 1327 호실 예약 시스템</title>
+    <style>
+        :root {
+            --quokka-brown: #8B4513;
+            --quokka-light-brown: #D2B48C;
+            --quokka-green: #228B22;
+            --quokka-blue: #1E90FF;
+            --quokka-pink: #FFB6C1;
+        }
+        body {
+            font-family: 'Jua', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #FFF8DC;
+            color: var(--quokka-brown);
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+        }
+        h1, h2 {
+            color: var(--quokka-brown);
+        }
+        h1 { 
+            font-size: 40px; 
+            margin-bottom: 20px;
+        }
+        h2 { 
+            font-size: 30px; 
+            margin-bottom: 20px;
+        }
+        #calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            background-color: var(--quokka-light-brown);
+            border: 3px solid var(--quokka-brown);
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        .day, .weekday {
+            background-color: #FFFFFF;
+            padding: 10px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            border: 2px solid var(--quokka-light-brown);
+        }
+        .weekday {
+            background-color: var(--quokka-brown);
+            color: white;
+            font-weight: bold;
+            min-height: auto;
+            cursor: default;
+        }
+        .day:hover {
+            background-color: var(--quokka-pink);
+            transform: scale(1.05);
+        }
+        .day.has-reservation {
+            background-color: var(--quokka-green);
+            color: white;
+        }
+        .day-number {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .reservation-count {
+            background-color: var(--quokka-blue);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .reservation-names {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 5px;
+        }
+        .reservation-name {
+            background-color: var(--quokka-pink);
+            color: var(--quokka-brown);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 2px;
+        }
+        #month-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: var(--quokka-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Jua', sans-serif;
+        }
+        button:hover {
+            background-color: var(--quokka-green);
+            transform: scale(1.05);
+        }
+        #reservation-form, #reservation-details {
+            background-color: var(--quokka-light-brown);
+            padding: 30px;
+            border-radius: 20px;
+            margin-top: 40px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            text-align: left;
+        }
+        #booking-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        #booking-form input,
+        #booking-form select {
+            width: calc(100% - 24px);
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid var(--quokka-brown);
+            border-radius: 10px;
+            font-size: 16px;
+            background-color: #FFFFFF;
+            font-family: 'Jua', sans-serif;
+        }
+        #reservation-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        #reservation-list li {
+            background-color: #FFFFFF;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid var(--quokka-brown);
+        }
+        #fee-options, #stay-options {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .fee-option, .stay-option {
+            flex: 1;
+            margin: 0 5px;
+            padding: 10px;
+            text-align: center;
+            background-color: #FFFFFF;
+            border: 2px solid var(--quokka-brown);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .fee-option:hover, .fee-option.selected,
+        .stay-option:hover, .stay-option.selected {
+            background-color: var(--quokka-pink);
+            color: var(--quokka-brown);
+        }
+        #booking-form button,
+        #reservation-details button {
+            width: 100%;
+            margin-top: 10px;
+        }
+        #total-reservations {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background-color: var(--quokka-green);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐨 쿼부장의 새롬관 1327 호실 예약 시스템 🐨</h1>
+        <div id="total-reservations">총 예약: 0명</div>
+        <div id="month-navigation">
+            <button id="prev-month">이전 달</button>
+            <h2 id="current-month"></h2>
+            <button id="next-month">다음 달</button>
+        </div>
+        <div id="calendar"></div>
+        <div id="reservation-form" style="display: none;">
+            <h2>🖊️ 예약 정보 입력</h2>
+            <form id="booking-form">
+                <label for="name">🧑‍💼 이름</label>
+                <input type="text" id="name" required>
+                
+                <label for="time">🕒 시간</label>
+                <select id="time" required>
+                    <option value="">시간을 선택하세요</option>
+                </select>
+                
+                <label for="purpose">🎯 방문 목적</label>
+                <input type="text" id="purpose" required>
+                
+                <label>💰 입장료</label>
+                <div id="fee-options">
+                    <div class="fee-option" data-value="휴지">휴지 🧻</div>
+                    <div class="fee-option" data-value="빅재미">빅재미 🎉</div>
+                    <div class="fee-option" data-value="돈">돈 💵</div>
+                </div>
+                
+                <label>🛏️ 숙박 여부</label>
+                <div id="stay-options">
+                    <div class="stay-option" data-value="자고 갈래요">자고 갈래요 😴</div>
+                    <div class="stay-option" data-value="집에 잘게요">집에 잘게요 🏠</div>
+                </div>
+                
+                <button type="submit">예약하기 ✅</button>
+            </form>
+        </div>
+        <div id="reservation-details" style="display: none;">
+            <h2>📋 예약 상세 정보</h2>
+            <ul id="reservation-list"></ul>
+            <button id="make-reservation">새 예약 만들기 ➕</button>
+        </div>
+    </div>
+
+    <script>
+        const calendar = document.getElementById('calendar');
+        const reservationForm = document.getElementById('reservation-form');
+        const reservationDetails = document.getElementById('reservation-details');
+        const bookingForm = document.getElementById('booking-form');
+        const reservationList = document.getElementById('reservation-list');
+        const currentMonthElement = document.getElementById('current-month');
+        const prevMonthButton = document.getElementById('prev-month');
+        const nextMonthButton = document.getElementById('next-month');
+        const makeReservationButton = document.getElementById('make-reservation');
+        const feeOptions = document.querySelectorAll('.fee-option');
+        const stayOptions = document.querySelectorAll('.stay-option');
+        const timeSelect = document.getElementById('time');
+        const totalReservationsElement = document.getElementById('total-reservations');
+
+        let currentDate = new Date(2024, 7, 1); // 2024년 8월
+        let reservations = JSON.parse(localStorage.getItem('reservations')) || {};
+        let selectedDate = '';
+
+        const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+
+        // 00시부터 24시까지의 시간 옵션을 생성합니다.
+        for (let i = 0; i <= 24; i++) {
+            const option = document.createElement('option');
+            option.value = `${i.toString().padStart(2, '0')}:00`;
+            option.textContent = `${i.toString().padStart(2, '0')}:00`;
+            timeSelect.appendChild(option);
+        }
+
+        function generateCalendar() {
+            calendar.innerHTML = '';
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+
+            currentMonthElement.textContent = `${year}년 ${month + 1}월`;
+
+            // 요일 표시
+            weekdays.forEach(day => {
+                const weekdayElement = document.createElement('div');
+                weekdayElement.classList.add('weekday');
+                weekdayElement.textContent = day;
+                calendar.appendChild(weekdayElement);
+            });
+
+            // 첫 날 이전의 빈 공간을 채웁니다.
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                const emptyDay = document.createElement('div');
+                calendar.appendChild(emptyDay);
+            }
+
+            // 달력의 날짜를 채웁니다.
+            for (let i = 1; i <= daysInMonth; i++) {
+                const day = document.createElement('div');
+                day.classList.add('day');
+                day.innerHTML = `<div class="day-number">${i}</div>`;
+                day.addEventListener('click', () => showOptions(year, month, i));
+                calendar.appendChild(day);
+
+                const dateString = `${year}-${month + 1}-${i}`;
+                if (reservations[dateString]) {
+                    day.classList.add('has-reservation');
+                    const count = reservations[dateString].length;
+                    const countElement = document.createElement('div');
+                    countElement.classList.add('reservation-count');
+                    countElement.textContent = count;
+                    day.appendChild(countElement);
+
+                    const namesContainer = document.createElement('div');
+                    namesContainer.classList.add('reservation-names');
+                    reservations[dateString].slice(0, 3).forEach(reservation => {
+                        const nameElement = document.createElement('div');
+                        nameElement.classList.add('reservation-name');
+                        nameElement.textContent = reservation.name[0];
+                        namesContainer.appendChild(nameElement);
+                    });
+                    day.appendChild(namesContainer);
+                }
+            }
+            updateTotalReservations();
+        }
+
+        function showOptions(year, month, day) {
+            selectedDate = `${year}-${month + 1}-${day}`;
+            reservationForm.style.display = 'none';
+            reservationDetails.style.display = 'block';
+            reservationDetails.querySelector('h2').textContent = `${year}년 ${month + 1}월 ${day}일`;
+            showReservationDetails(selectedDate);
+        }
+
+        function showReservationDetails(dateString) {
+            reservationList.innerHTML = '';
+            if (reservations[dateString] && reservations[dateString].length > 0) {
+                reservations[dateString].forEach(reservation => {
+                    const li = document.createElement('li');
+                    li.textContent = `이름: ${reservation.name}, 시간: ${reservation.time}, 목적: ${reservation.purpose}, 입장료: ${reservation.fee}, 숙박: ${reservation.stay}`;
+                    reservationList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = '예약 정보가 없습니다.';
+                reservationList.appendChild(li);
+            }
+        }
+
+        function submitReservation(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const time = document.getElementById('time').value;
+            const purpose = document.getElementById('purpose').value;
+            const fee = document.querySelector('.fee-option.selected').dataset.value;
+            const stay = document.querySelector('.stay-option.selected').dataset.value;
+
+            if (!reservations[selectedDate]) {
+                reservations[selectedDate] = [];
+            }
+            reservations[selectedDate].push({ name, time, purpose, fee, stay });
+
+            alert('예약이 완료되었습니다!');
+            bookingForm.reset();
+            reservationForm.style.display = 'none';
+            generateCalendar();
+            showReservationDetails(selectedDate);
+            reservationDetails.style.display = 'block';
+            updateTotalReservations();
+
+            saveReservations(); // 예약 저장
+        }
+
+        function saveReservations() {
+            localStorage.setItem('reservations', JSON.stringify(reservations));
+        }
+
+        function updateTotalReservations() {
+            let total = 0;
+            for (let date in reservations) {
+                total += reservations[date].length;
+            }
+            totalReservationsElement.textContent = `총 예약: ${total}명`;
+        }
+
+        prevMonthButton.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            if (currentDate < new Date(2024, 7, 1)) {
+                currentDate = new Date(2024, 7, 1);
+            }
+            generateCalendar();
+        });
+
+        nextMonthButton.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            if (currentDate > new Date(2024, 11, 31)) {
+                currentDate = new Date(2024, 11, 1);
+            }
+            generateCalendar();
+        });
+
+        makeReservationButton.addEventListener('click', () => {
+            reservationDetails.style.display = 'none';
+            reservationForm.style.display = 'block';
+        });
+
+        bookingForm.addEventListener('submit', submitReservation);
+
+        feeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                feeOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+            });
+        });
+
+        stayOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                stayOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateCalendar();
+            updateTotalReservations();
+        });
+    </script>
+</body>
+</html>
